@@ -1,5 +1,6 @@
 #-*- coding:utf-8 -*-
 from math import log
+import operator
 
 #计算香农熵 
 def calcShannonEnt(dataSet):
@@ -57,6 +58,39 @@ def chooseBestFeatureToSplit(dataSet):
                 bestInfoGain = infoGain
                 bestFeature = i
     return bestFeature
+
+"""
+    功能:对使用完所有属性后依旧没有分类结果的数据进行投票，投票结果为该数据的最终的标签
+    classList:已有的分类标签
+    return:投票的结果，标签
+"""
+def majorityCnt(classList):
+    classCount = {}
+    for vote in classList:
+        if vote not in classCount.keys(): classCount[vote] = 0
+        classCount[vote] += 1
+    sortedClassCount = sorted(classCount.items(), #python2  classCount.iteritems()
+                                  key=operator.itemgetter(1),reverse=True)
+    #取下标为1的元素作为排序权重，排序后翻转（因为默认的排序结果是是由小到大）  
+    return sortedClassCount[0][0]
+
+#tree-building 
+def createTree(dataSet, labels):
+    classList = [example[-1] for example in dataSet]
+    if classList.count(classList[0]) == len(classList):
+        return classList[0] #所有类型一致时返回
+    if len(dataSet[0]) == 1:
+        return majorityCnt(classList) #当dataSet只有一个样本时，取出现最多的类标签作为其最终结果
+    bestFeat = chooseBestFeatureToSplit(dataSet)
+    bestFeateLabel = labels[bestFeat]
+    myTree = {bestFeateLabel:{}} #用字典存储决策树 
+    del(labels[bestFeat])   #使用完的特征从特征数组中删去 
+    featValues = [example[bestFeat] for example in dataSet]
+    uniqueVals = set(featValues)
+    for value in uniqueVals:
+        subLabels = labels[:]  #将labels拷贝到subLabels这个列表中 
+        myTree[bestFeateLabel][value] = createTree(splitDataSet(dataSet,bestFeat,value),subLabels)
+    return myTree
 
 
 
