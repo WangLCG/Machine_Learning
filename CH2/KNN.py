@@ -88,8 +88,51 @@ def classifyPerson():
     classifierResult = classify0((inArr-minVals)/ranges,normMat,datingLabels, k)
     print "You will probably like this person: %s" % resultList[classifierResult - 1]
 
+#将文本形式的32x32的图像转化为1x1024的vector
+def img2vector(filename):
+    returnVect = zeros((1,1024))
+    fr = open(filename)
 
+    for i in range(32):
+        lineStr = fr.readline()
+        for j in range(32):
+            returnVect[0,32*i+j] = int(lineStr[j])
+    return returnVect
 
+TRAININGDIGITS_PATH  =  'digits/trainingDigits'
+TESTDIGIT_PATH       =  'digits/testDigits'
+
+#手写图像识别（32x32的二值图像）
+def handwritingClassTest():
+    from os import listdir
+    hwLabels = []  #分类标签 0-9
+    trainingFileList = listdir(TRAININGDIGITS_PATH)
+    m = len(trainingFileList)
+    trainingMat = zeros((m, 1024))
+    for i in range(m):
+        fileNameStr = trainingFileList[i]
+        fileStr = fileNameStr.split('.')[0]
+        classNumStr = int(fileStr.split('_')[0])
+        hwLabels.append(classNumStr)
+        trainingMat[i:] = img2vector('%s/%s' % (TRAININGDIGITS_PATH, fileNameStr))
+
+    testFileList = listdir(TESTDIGIT_PATH)
+    errorCount = 0.0
+    mTest = len(testFileList)
+    for i in range(mTest):
+        fileNameStr = testFileList[i]
+        fileStr = fileNameStr.split('.')[0]
+        classNumStr = int(fileStr.split('_')[0])
+        vectorUnderTest = img2vector('%s/%s' % (TESTDIGIT_PATH, fileNameStr))
+        classifierResult = classify0(vectorUnderTest, trainingMat, hwLabels, 3)
+        
+        print "the classifier came back with: %d, the real answer is: %d" % (classifierResult, classNumStr)
+        
+        if(classifierResult != classNumStr): 
+            errorCount +=1.0
+    
+    print "\nthe total number of errors is: %d" % errorCount
+    print "\nthe total error rate is: %f" % (errorCount/float(mTest))
 
 
 
