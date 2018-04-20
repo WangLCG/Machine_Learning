@@ -168,7 +168,7 @@ def innerL(i, oS):
              (oS.alphas[j] - alphasJold) * oS.X[j,:] * oS.X[j,:].T
 
         if (0 < oS.alphas[i]) and (oS.C > oS.alphas[i]): oS.b = b1
-        elif (0 < oS.alphas[j]) and (oS.c > oS.alphas[j]):oS.b = b2
+        elif (0 < oS.alphas[j]) and (oS.C > oS.alphas[j]):oS.b = b2
         else:oS.b = (b1 + b2)/2.0
         return 1
     else:return 0
@@ -196,3 +196,14 @@ def smoP(dataMatIn, classLabels, C, toler, maxIter, kTup = ('lin',0)):
         elif(alphaPairsChanged == 0):entireSet = True
         print("iteration number:%d " % iter)
     return oS.b, oS.alphas
+
+#计算W
+def calcWs(alphas, dataArr, classLabels):
+    X = mat(dataArr)
+    labelMat = mat(classLabels).transpose()
+    m,n = shape(X)
+    w = zeros((n, 1))
+    for i in range(m):
+        w += multiply(alphas[i]*labelMat[i], X[i,:].T)
+        #实数与矩阵相乘--实数与矩阵的每个元素相乘 
+    return w
